@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FLOW — 给摄影师的 macOS 选片工具</title>
-<meta name="description" content="FLOW 是一款 macOS 照片选片工具：本地处理、原生支持 RAW（CR3/RAF）、全屏「去/留」一键筛选、目标数量提醒、断点续选。">
+<meta name="description" content="FLOW 是一款 macOS 照片选片工具：本地处理、原生支持 RAW（CR3/RAF/NEF/ARW/DNG）、全屏「去/留/待定」三态筛选、待定对比、加密备注、目标数量提醒、断点续选。">
 <style>
   :root {
     --bg: #111111;
@@ -89,8 +89,8 @@
   .hero .cta-row { margin-top: 36px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
   .hero .note { margin-top: 16px; font-size: 13px; color: var(--text-3); }
 
-  /* ---------- 界面 Mock ---------- */
-  .mock-stage { margin: 72px auto 0; max-width: 920px; }
+  /* ---------- 界面 Mock（概念示意） ---------- */
+  .mock-stage { margin: 72px auto 0; max-width: 860px; }
   .mock-window {
     background: var(--bg-2); border: 1px solid var(--border-strong); border-radius: 14px;
     box-shadow: 0 40px 90px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.02) inset;
@@ -103,22 +103,29 @@
   .mock-titlebar .tl { width: 11px; height: 11px; border-radius: 50%; }
   .tl.r { background: #FF5F57; } .tl.y { background: #FEBC2E; } .tl.g { background: #28C840; }
   .mock-titlebar .tname { margin-left: 8px; font-size: 12px; color: var(--text-3); }
-  .mock-body { display: flex; flex-direction: column; gap: 18px; padding: 22px; }
 
-  .mock-topbar {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    height: 44px; padding: 0 14px; border-radius: 999px;
-    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-    backdrop-filter: blur(8px);
+  .mock-body { display: flex; }
+
+  /* 侧边栏：极简示意 */
+  .mock-sidebar {
+    width: 108px; flex-shrink: 0; padding: 18px 12px;
+    border-right: 1px solid var(--border); background: rgba(255,255,255,0.02);
+    display: flex; flex-direction: column; gap: 18px;
   }
-  .mock-topbar .brand { font-weight: 700; font-size: 14px; }
-  .mock-tabs { display: flex; gap: 4px; }
-  .mock-tabs span { font-size: 12px; padding: 5px 12px; border-radius: 999px; color: var(--text-2); }
-  .mock-tabs span.on { background: var(--accent); color: #141414; font-weight: 600; }
-  .mock-target { font-size: 12px; color: var(--text-2); }
+  .mock-sidebar .logo { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 14px; }
+  .mock-sidebar .logo .dot { width: 17px; height: 17px; border-radius: 5px; background: var(--accent); display: grid; place-items: center; }
+  .mock-sidebar .logo .dot svg { width: 10px; height: 10px; }
+  .mock-fn { display: flex; flex-direction: column; gap: 6px; }
+  .mock-fn .item { display: flex; align-items: center; font-size: 12px; padding: 8px 10px; border-radius: 8px; color: var(--text-3); }
+  .mock-fn .item.on { background: rgba(255,255,255,0.10); color: var(--accent); font-weight: 600; }
 
+  /* 主区：进度条 + 照片 + 去/留/待定 */
+  .mock-main { flex: 1; padding: 28px 34px; display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center; min-width: 0; }
+  .mock-seek { width: 58%; height: 8px; border-radius: 999px; background: rgba(255,255,255,0.10); position: relative; }
+  .mock-seek .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 46%; border-radius: 999px; background: var(--accent); }
+  .mock-seek .knob { position: absolute; left: 46%; top: 50%; transform: translate(-50%, -50%); width: 13px; height: 13px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
   .mock-photo {
-    position: relative; height: 300px; border-radius: 14px; overflow: hidden;
+    position: relative; width: 72%; height: 330px; border-radius: 14px; overflow: hidden;
     display: grid; place-items: center;
     background:
       radial-gradient(120% 120% at 50% 30%, #3a4430 0%, #1c211a 45%, #0e100d 100%);
@@ -127,22 +134,14 @@
   .mock-photo .grain { position: absolute; inset: 0; opacity: 0.5; mix-blend-mode: overlay;
     background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size: 3px 3px; }
   .mock-photo .pic-label { font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
-  .mock-decide { display: flex; gap: 12px; justify-content: center; }
-  .mock-decide .d { padding: 11px 30px; border-radius: 999px; font-size: 14px; font-weight: 600; }
+  .mock-photo .badge { position: absolute; top: 10px; right: 10px; font-size: 10px; color: var(--accent); background: rgba(178,250,74,0.14); border: 1px solid rgba(178,250,74,0.25); padding: 3px 9px; border-radius: 999px; }
+  .mock-decide { display: flex; gap: 14px; justify-content: center; }
+  .mock-decide .d { padding: 11px 28px; border-radius: 999px; font-size: 14px; font-weight: 600; }
   .mock-decide .discard { background: rgba(255,255,255,0.07); color: var(--text); border: 1px solid var(--border-strong); }
+  .mock-decide .pending { background: rgba(242,201,76,0.16); color: #F2C94C; border: 1px solid rgba(242,201,76,0.3); }
   .mock-decide .keep { background: var(--accent); color: #141414; }
-  .mock-bottombar {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    height: 46px; padding: 0 16px; border-radius: 999px;
-    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-  }
-  .mock-bottombar .count { font-size: 12px; color: var(--text-2); }
-  .mock-bottombar .thumbs { display: flex; gap: 6px; }
-  .mock-bottombar .thumbs i { width: 40px; height: 26px; border-radius: 4px; border: 1px solid var(--border); }
-  .mock-bottombar .thumbs i:nth-child(1) { background: #4a5b3a; }
-  .mock-bottombar .thumbs i:nth-child(2) { background: #5b4a3a; }
-  .mock-bottombar .thumbs i:nth-child(3) { background: #3a4a5b; }
-  .mock-bottombar .save { font-size: 12px; color: var(--accent); }
+
+
 
   /* ---------- 段落通用 ---------- */
   section { padding: 90px 0; }
@@ -221,7 +220,7 @@
   .privacy-list li { font-size: 15px; color: var(--text-2); line-height: 1.7; }
   .privacy-list li strong { color: var(--text); font-weight: 650; }
 
-  /* ---------- 2.0 新特性 ---------- */
+  /* ---------- 2.6 新特性 ---------- */
   .whatsnew { padding: 24px 0 90px; }
   .wn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
   .wn-card { padding: 26px 22px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); }
@@ -238,7 +237,9 @@
     .wn-grid { grid-template-columns: 1fr 1fr; }
     .nav-links { display: none; }
     .hero { padding-top: 130px; }
-    .mock-photo { height: 210px; }
+    .mock-sidebar { display: none; }
+    .mock-photo { height: 210px; width: 82%; }
+    .mock-main { padding: 18px; gap: 16px; }
   }
 </style>
 <script data-goatcounter="https://jolynn.goatcounter.com/count"
@@ -269,9 +270,9 @@
 <!-- HERO -->
 <section class="hero">
   <div class="wrap">
-    <span class="eyebrow">macOS · 本地运行 · 支持 RAW · 2.0</span>
+    <span class="eyebrow">macOS · 本地运行 · 支持 RAW · 2.6</span>
     <h1>选片，不该熬夜。<br>拍得多，<span class="hl">选得快。</span></h1>
-    <p class="sub">FLOW 是给摄影师做的选片工具。多任务卡片、画册拼贴、液态玻璃界面，几百张 RAW 导入本地，全屏「去 / 留」一键筛选，达标即导出——把熬夜还给你自己。</p>
+    <p class="sub">FLOW 是给摄影师做的选片工具。本地加载上百张 RAW，全屏「去 / 留 / 待定」三态一键筛选，待定对比、逐张备注、目标数量提醒，达标即导出——把熬夜还给你自己。</p>
     <div class="cta-row">
       <a href="FLOW.dmg" class="btn btn-accent">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 4v10m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg>
@@ -285,26 +286,31 @@
       <div class="mock-window">
         <div class="mock-titlebar">
           <span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>
-          <span class="tname">FLOW — 快速筛选照片</span>
+          <span class="tname">FLOW</span>
         </div>
         <div class="mock-body">
-          <div class="mock-topbar">
-            <span class="brand">FLOW</span>
-            <div class="mock-tabs"><span class="on">选片</span><span>已选</span></div>
-            <span class="mock-target">目标 5</span>
+          <div class="mock-sidebar">
+            <div class="logo">
+              <span class="dot"><svg viewBox="0 0 12 12" fill="#141414"><path d="M6 0 L12 6 L6 12 L0 6 Z"/></svg></span>
+              Flow
+            </div>
+            <div class="mock-fn">
+              <div class="item on">选片</div>
+              <div class="item">⋯</div>
+            </div>
           </div>
-          <div class="mock-photo">
-            <div class="grain"></div>
-            <span class="pic-label">3H6A2767.CR3</span>
-          </div>
-          <div class="mock-decide">
-            <span class="d discard">✕ 去</span>
-            <span class="d keep">✓ 留</span>
-          </div>
-          <div class="mock-bottombar">
-            <span class="count">已选 3 / 5</span>
-            <div class="thumbs"><i></i><i></i><i></i></div>
-            <span class="save">另存 →</span>
+          <div class="mock-main">
+            <div class="mock-seek"><div class="fill"></div><div class="knob"></div></div>
+            <div class="mock-photo">
+              <div class="grain"></div>
+              <span class="pic-label">3H6A2767.CR3</span>
+              <span class="badge">RAW</span>
+            </div>
+            <div class="mock-decide">
+              <span class="d discard">舍弃</span>
+              <span class="d pending">待定</span>
+              <span class="d keep">采用</span>
+            </div>
           </div>
         </div>
       </div>
@@ -312,34 +318,34 @@
   </div>
 </section>
 
-<!-- 2.0 新特性 -->
+<!-- 2.6 新特性 -->
 <section class="whatsnew" id="whatsnew">
   <div class="wrap">
     <div class="sec-head">
       <span class="tag">What's New</span>
-      <h2>2.0 新特性</h2>
-      <p>这一版，我们把「多任务」和「已选复查」彻底重做，更顺手、更好看。</p>
+      <h2>2.6 新特性</h2>
+      <p>这一版，我们把「待定」「对比」和「备注」做进选片流程，更顺手、更安心。</p>
     </div>
     <div class="wn-grid">
       <div class="wn-card">
-        <div class="wn-ico">🗂</div>
-        <h3>侧边栏快速切换</h3>
-        <p>左侧任务侧边栏，多个选片任务一键切换，进度自动保存，不用来回开文件夹。</p>
+        <div class="wn-ico">🏷</div>
+        <h3>去 / 留 / 待定，三态筛选</h3>
+        <p>拿不准的先标「待定」，不打断节奏，回头再一起决定，不手滑、不漏片。</p>
       </div>
       <div class="wn-card">
-        <div class="wn-ico">🌊</div>
-        <h3>选片瀑布流预览</h3>
-        <p>已选照片按横竖自动拼成瀑布流画册，滚动聚焦，点击放大居中预览。</p>
+        <div class="wn-ico">🔍</div>
+        <h3>待定对比双框</h3>
+        <p>点击待定缩略图，左右双框同屏对比；触控板捏合缩放、双指平移，看得清每一处细节。</p>
       </div>
       <div class="wn-card">
-        <div class="wn-ico">🪟</div>
-        <h3>液态玻璃界面</h3>
-        <p>原生 Liquid Glass 质感，顶栏底栏半透明悬浮，沉浸式过片。</p>
+        <div class="wn-ico">📝</div>
+        <h3>逐张加密备注</h3>
+        <p>每张照片都能写备注，AES-256 加密存在本机，只有你能看到。</p>
       </div>
       <div class="wn-card">
-        <div class="wn-ico">✨</div>
-        <h3>删除补位动效</h3>
-        <p>删一张，其余照片平滑补位，一镜到底，视觉更顺滑。</p>
+        <div class="wn-ico">🎚</div>
+        <h3>拖动进度条 + 固定放大</h3>
+        <p>进度条一拖秒定位，固定放大看细节，RAW 对焦一眼看清。</p>
       </div>
     </div>
   </div>
@@ -379,6 +385,7 @@
     <div class="sec-head">
       <span class="tag">Features</span>
       <h2>只做「去 / 留」，但把它做扎实</h2>
+      <p>本地、极速、无打扰——从导入到导出，一个软件全包。</p>
     </div>
     <div class="feat-grid">
       <div class="feat">
@@ -392,9 +399,9 @@
         <p>CR3 / RAF / NEF / ARW / DNG 直接看，不用先转格式。</p>
       </div>
       <div class="feat">
-        <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 5h14v14H5z"/><path d="M5 9l4 4 3-3 4 4"/></svg></div>
-        <h3>单张全屏浏览</h3>
-        <p>一次只看一张，去 / 留一键，快捷键顺手。</p>
+        <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></div>
+        <h3>全屏「去 / 留 / 待定」</h3>
+        <p>一次只看一张，三态一键决定，快捷键顺手，不打断节奏。</p>
       </div>
       <div class="feat">
         <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/></svg></div>
@@ -402,19 +409,39 @@
         <p>设好交付张数，选够即停，避免多选返工。</p>
       </div>
       <div class="feat">
-        <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v6"/><path d="M12 15v6"/><path d="M3 12h6"/><path d="M15 12h6"/></svg></div>
+        <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M7 3h10v18l-5-4-5 4z"/></svg></div>
         <h3>断点续选</h3>
-        <p>随时关掉，下次打开接着上次的位置继续。</p>
+        <p>随时关掉，下次打开接着上次的位置继续，进度不丢。</p>
       </div>
       <div class="feat">
-        <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M8 5v14M16 5v14"/><path d="M4 12h16"/></svg></div>
+        <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="5" width="8" height="14" rx="1.5"/><rect x="13" y="5" width="8" height="14" rx="1.5"/></svg></div>
+        <h3>待定对比双框</h3>
+        <p>点击待定缩略图，左右双框同屏对比，触控板缩放平移看细节。</p>
+      </div>
+      <div class="feat">
+        <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 3h14v18H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></div>
+        <h3>逐张加密备注</h3>
+        <p>每张照片写备注，AES-256 加密存本地，只有你能看。</p>
+      </div>
+      <div class="feat">
+        <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5l4.5 4.5"/><path d="M11 8v6M8 11h6"/></svg></div>
+        <h3>固定放大 + 进度条定位</h3>
+        <p>一键固定放大看细节，进度条拖动秒定位，RAW 对焦一眼看清。</p>
+      </div>
+      <div class="feat">
+        <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M8 5v14M16 5v14M4 12h16"/></svg></div>
         <h3>已选画册拼贴</h3>
-        <p>已选照片按横竖自动拼成画册，点击放大居中预览，一键另存导出。</p>
+        <p>已选照片按横竖自动拼成画册，滚动聚焦，点击放大，一键另存。</p>
       </div>
       <div class="feat">
         <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 9h18M9 3v18"/></svg></div>
         <h3>多任务卡片 + 侧边栏</h3>
         <p>多个选片任务一目了然，侧边栏快速切换，进度随时保存。</p>
+      </div>
+      <div class="feat">
+        <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v4h-4"/></svg></div>
+        <h3>自动扫描 + 自定义快捷键</h3>
+        <p>定时自动扫描文件夹里的新照片；去留待定、翻页、缩放都有一键快捷键。</p>
       </div>
       <div class="feat">
         <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l8 5v8l-8 5-8-5V8z"/><path d="M12 3l8 5v8l-8 5-8-5V8z" opacity=".4"/></svg></div>
@@ -440,13 +467,13 @@
       </div>
       <div class="step">
         <div class="n">02</div>
-        <h3>逐张「去 / 留」</h3>
-        <p>全屏看、一键决定，到目标数量自动提醒。</p>
+        <h3>逐张「去 / 留 / 待定」</h3>
+        <p>全屏看、一键三态决定，到目标数量自动提醒。</p>
       </div>
       <div class="step">
         <div class="n">03</div>
         <h3>导出已选</h3>
-        <p>封面流复查一遍，一键另存到交付文件夹。</p>
+        <p>画册拼贴复查一遍，一键另存到交付文件夹。</p>
       </div>
     </div>
   </div>
@@ -462,7 +489,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 4v10m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg>
         下载 FLOW（macOS）
       </a>
-      <p style="margin-top:14px; font-size:12px; color:var(--text-3)">FLOW 2.0 · FLOW.dmg 约 0.9 MB · macOS 13+ · 完全免费</p>
+      <p style="margin-top:14px; font-size:12px; color:var(--text-3)">FLOW 2.6 · FLOW.dmg 约 1.1 MB · macOS 13+ · 完全免费</p>
     </div>
   </div>
 </section>
