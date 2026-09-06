@@ -61,10 +61,6 @@ CR3 / RAF / NEF / ARW / DNG / ORF / RW2 直接预览，无需先转格式。
 定时自动扫描文件夹里的新照片；去留待定、翻页、缩放都有自定义快捷键。
 *Auto-scan the folder for new photos on a schedule; every action — discard/keep/pending, navigate, zoom — is on a custom shortcut.*
 
-### 12. 液态玻璃界面 · Liquid Glass UI
-原生 Liquid Glass 质感，顶栏底栏半透明悬浮，沉浸式过片。
-*Native Liquid Glass surfaces with translucent floating bars for an immersive review experience.*
-
 ---
 
 ## 2.6 版本新特性 · What's New in 2.6
@@ -84,10 +80,6 @@ CR3 / RAF / NEF / ARW / DNG / ORF / RW2 直接预览，无需先转格式。
 ### 🎚 拖动进度条 + 固定放大 · Draggable Seek Bar + Pinned Zoom
 进度条一拖秒定位，固定放大看细节，RAW 对焦一眼看清。
 *Drag the progress bar to jump instantly; pin the zoom to inspect detail and verify RAW focus.*
-
-### 🧭 侧边栏「更多功能拓展中」 · Sidebar "More Coming Soon"
-左侧侧边栏预留「更多功能」入口，后续版本持续扩展。
-*The sidebar reserves a "more features" entry — more to come in future releases.*
 
 ### ⚡ 性能优化 · Performance
 放大不再重载缩略图、带预算的缩略图缓存、后台扫描与持久化，大图库更顺滑。
